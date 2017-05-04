@@ -5,17 +5,15 @@ package main
 import (
 	"bytes"
 	"testing"
+	"text/template"
 	"time"
 
-	"text/template"
-
 	"github.com/MustWin/baremetal-sdk-go"
+	"github.com/hashicorp/terraform/helper/acctest"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-
 	"github.com/oracle/terraform-provider-baremetal/client/mocks"
-
 	"github.com/stretchr/testify/suite"
 )
 
@@ -163,4 +161,96 @@ func (s *DatabaseDBSystemTestSuite) TestTerminateDBSystem() {
 
 func TestDatabaseDBSystemTestSuite(t *testing.T) {
 	suite.Run(t, new(DatabaseDBSystemTestSuite))
+}
+
+func TestAccOBMCSDBSystem_thing(t *testing.T) {
+	ri := acctest.RandInt()
+	config := testAccOBMASDBSystem_basic(ri)
+
+	resourceName := "baremetal_database_db_system.t"
+
+	resource.UnitTest(t, resource.TestCase{
+		Providers: testAccProviders,
+		Steps: []resource.TestStep{
+			{
+				Config: config,
+				Check: resource.ComposeTestCheckFunc(
+					resource.TestCheckResourceAttr(resourceName, "compartment_id", "ocid1.compartment.FIXME"),
+				),
+			},
+		},
+	})
+}
+
+func testAccOBMASDBSystem_basic(ri int) string {
+	config := `
+provider "baremetal" {
+  tenancy_ocid     = "ocid1.tenancy.FIXME"
+  user_ocid        = "ocid1.user.FIXME"
+  fingerprint      = "FIXME_fingerprint"
+  private_key_path = "auth_key"
+}
+
+resource "baremetal_database_db_system" "TFDBNode" {
+  domain              = "enkitec"
+  availability_domain = "foTc:PHX-AD-1"
+  display_name        = "RandomDBSystem"
+  compartment_id      = "ocid1.compartment.FIXME"
+  subnet_id           = "ocid1.subnet.FIXME"
+  hostname            = "node1"
+  database_edition    = "ENTERPRISE_EDITION_EXTREME_PERFORMANCE"
+
+  ssh_public_keys = [
+    FIXME_ssh_public_key",
+  ]
+
+  shape           = "BM.DenseIO1.36"
+  disk_redundancy = "HIGH"
+  cpu_core_count  = "2"
+
+  db_home = {
+    db_version   = "12.1.0.2"
+    display_name = "DBfromAPI"
+
+    database {
+      db_name        = "TESTBMC"
+      admin_password = "stub_admin_password"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [
+      "db_home.0.database.0.admin_password",
+      "db_home.0.database.0.db_name",
+      "db_home.0.db_version",
+      "db_home.0.display_name",
+    ]
+  }
+}
+
+data "baremetal_identity_availability_domains" "ADs" {
+  compartment_id = "${var.tenancy_ocid}"
+}
+
+data "baremetal_database_db_node" "DBNodeDetails" {
+  db_node_id = "${baremetal_database_db_system.TFDBNode.id}"
+}
+
+data "baremetal_core_vnic" "DBNodeVnic" {
+  vnic_id = "${lookup(data.baremetal_database_db_node.DBNodeDetails.vnic_id,"vnic_id")}"
+}
+
+output "instance_id" {
+  value = "${baremetal_database_db_system.TFDBNode.id}"
+}
+
+output "DBNodePublicIP" {
+  value = ["${data.baremetal_core_vnic.DBNodeVnic.public_ip_address}"]
+}
+
+output "DBNodePrivateIP" {
+  value = ["${data.baremetal_core_vnic.DBNodeVnic.private_ip_address}"]
+}
+`
+	return config
 }

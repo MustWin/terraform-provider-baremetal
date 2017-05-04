@@ -27,6 +27,10 @@ func init() {
 	}
 }
 
+func DefaultProvider() terraform.ResourceProvider {
+	return Provider(providerConfig)
+}
+
 // Provider is the adapter for terraform, that gives access to all the resources
 func Provider(configfn schema.ConfigureFunc) terraform.ResourceProvider {
 	return &schema.Provider{
@@ -66,6 +70,15 @@ func schemaMap() map[string]*schema.Schema {
 			Description: descriptions["private_key"],
 			DefaultFunc: schema.EnvDefaultFunc("OBMCS_PRIVATE_KEY", nil),
 		},
+
+		// FIXME: should this be removed?
+		"timeout_minutes": {
+			Type:        schema.TypeInt,
+			Optional:    true,
+			Description: descriptions["timeout_minutes"],
+			DefaultFunc: schema.EnvDefaultFunc("OBMCS_TIMEOUT_MINUTES", 5),
+		},
+
 		"private_key_path": {
 			Type:        schema.TypeString,
 			Optional:    true,
