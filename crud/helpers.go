@@ -66,7 +66,8 @@ func (s *BaseCrud) State() string {
 }
 
 func handleMissingResourceError(sync ResourceVoider, err *error) {
-	if err != nil && strings.Contains((*err).Error(), "does not exist") {
+	if err != nil && (strings.Contains((*err).Error(), "does not exist") ||
+		strings.Contains((*err).Error(), "not found")) {
 		log.Println("[DEBUG] Object does not exist, voiding resource and nullifying error")
 		sync.VoidState()
 		*err = nil

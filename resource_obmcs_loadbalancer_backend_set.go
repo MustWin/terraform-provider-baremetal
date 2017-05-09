@@ -3,6 +3,7 @@
 package main
 
 import (
+	"log"
 	"github.com/MustWin/baremetal-sdk-go"
 	"github.com/hashicorp/terraform/helper/schema"
 
@@ -162,21 +163,11 @@ func (s *LoadBalancerBackendSetResourceCrud) Get() (e error) {
 }
 
 func (s *LoadBalancerBackendSetResourceCrud) Update() (e error) {
-	healthChecker := baremetal.HealthChecker{
-		IntervalInMS:      s.D.Get("health_checker.interval_ms").(int),
-		Port:              s.D.Get("health_checker.port").(int),
-		Protocol:          s.D.Get("health_checker.protocol").(string),
-		ResponseBodyRegex: s.D.Get("health_checker.response_body_regex").(string),
-	}
-	sslConfig := baremetal.SSLConfiguration{
-		CertificateName:       s.D.Get("ssl_configuration.certificate_name").(string),
-		VerifyDepth:           s.D.Get("ssl_configuration.verify_depth").(int),
-		VerifyPeerCertificate: s.D.Get("ssl_configuration.verify_peer_certificate").(bool),
-	}
+
 	opts := &baremetal.UpdateLoadBalancerBackendSetOptions{
 		Policy:        s.D.Get("policy").(string),
-		SSLConfig:     sslConfig,
-		HealthChecker: healthChecker,
+		HealthChecker: s.healthChecker(),
+		SSLConfig: s.sslConfig(),
 	}
 
 	var workReqID string
@@ -199,6 +190,7 @@ func (s *LoadBalancerBackendSetResourceCrud) SetData() {
 		"port":                s.Resource.HealthChecker.Port,
 		"protocol":            s.Resource.HealthChecker.Protocol,
 		"response_body_regex": s.Resource.HealthChecker.ResponseBodyRegex,
+		"url_path": s.Resource.HealthChecker.URLPath,
 	})
 	s.D.Set("ssl_configuration", map[string]interface{}{
 		"certificate_name":        s.Resource.SSLConfig.CertificateName,
@@ -231,9 +223,9 @@ func (s *LoadBalancerBackendSetResourceCrud) Delete() (e error) {
 }
 
 func (s *LoadBalancerBackendSetResourceCrud) sslConfig() (sslConfig *baremetal.SSLConfiguration) {
-	sslConfig = new(baremetal.SSLConfiguration)
 	vs := s.D.Get("ssl_configuration").([]interface{})
 	if len(vs) == 1 {
+		sslConfig = new(baremetal.SSLConfiguration)
 		v := vs[0].(map[string]interface{})
 		sslConfig.CertificateName = v["certificate_name"].(string)
 		sslConfig.VerifyDepth = v["verify_depth"].(int)
@@ -243,18 +235,23 @@ func (s *LoadBalancerBackendSetResourceCrud) sslConfig() (sslConfig *baremetal.S
 	return
 }
 
-func (s *LoadBalancerBackendSetResourceCrud) healthChecker() *baremetal.HealthChecker {
-	healthChecker := new(baremetal.HealthChecker)
+func (s *LoadBalancerBackendSetResourceCrud) healthChecker() (*baremetal.HealthChecker) {
+	healthChecker := &baremetal.HealthChecker{}
 	vs := s.D.Get("health_checker").([]interface{})
+	log.Printf("============================================\n%v\n%v\n%v\n", vs, len(vs))
+	log.Printf("%v\n==================================", vs[0].(map[string]interface{})["port"])
+
 	if len(vs) == 1 {
 		v := vs[0].(map[string]interface{})
 		healthChecker.IntervalInMS = v["interval_ms"].(int)
 		healthChecker.Port = v["port"].(int)
 		healthChecker.Protocol = v["protocol"].(string)
 		healthChecker.ResponseBodyRegex = v["response_body_regex"].(string)
+		healthChecker.URLPath = v["url_path"].(string)
 	}
 	return healthChecker
 }
+
 func (s *LoadBalancerBackendSetResourceCrud) backends() []baremetal.Backend {
 	vs := s.D.Get("backend").([]interface{})
 	backends := make([]baremetal.Backend, len(vs))
