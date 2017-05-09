@@ -13,11 +13,10 @@ var HealthCheckerSchema = &schema.Schema{
 			"interval_ms": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  30000,
 			},
 			"port": {
 				Type:     schema.TypeInt,
-				Required: true,
+				Optional: true,
 			},
 			"protocol": {
 				Type:     schema.TypeString,
@@ -25,6 +24,10 @@ var HealthCheckerSchema = &schema.Schema{
 			},
 			"response_body_regex": {
 				Type:     schema.TypeString,
+				Optional: true,
+			},
+			"url_path": {
+				Type: schema.TypeString,
 				Required: true,
 			},
 		},
