@@ -3,9 +3,9 @@
 package main
 
 import (
-	"log"
 	"github.com/MustWin/baremetal-sdk-go"
 	"github.com/hashicorp/terraform/helper/schema"
+	"log"
 
 	"github.com/oracle/terraform-provider-baremetal/client"
 	"github.com/oracle/terraform-provider-baremetal/crud"
@@ -167,7 +167,7 @@ func (s *LoadBalancerBackendSetResourceCrud) Update() (e error) {
 	opts := &baremetal.UpdateLoadBalancerBackendSetOptions{
 		Policy:        s.D.Get("policy").(string),
 		HealthChecker: s.healthChecker(),
-		SSLConfig: s.sslConfig(),
+		SSLConfig:     s.sslConfig(),
 	}
 
 	var workReqID string
@@ -190,7 +190,7 @@ func (s *LoadBalancerBackendSetResourceCrud) SetData() {
 		"port":                s.Resource.HealthChecker.Port,
 		"protocol":            s.Resource.HealthChecker.Protocol,
 		"response_body_regex": s.Resource.HealthChecker.ResponseBodyRegex,
-		"url_path": s.Resource.HealthChecker.URLPath,
+		"url_path":            s.Resource.HealthChecker.URLPath,
 	})
 	s.D.Set("ssl_configuration", map[string]interface{}{
 		"certificate_name":        s.Resource.SSLConfig.CertificateName,
@@ -235,7 +235,7 @@ func (s *LoadBalancerBackendSetResourceCrud) sslConfig() (sslConfig *baremetal.S
 	return
 }
 
-func (s *LoadBalancerBackendSetResourceCrud) healthChecker() (*baremetal.HealthChecker) {
+func (s *LoadBalancerBackendSetResourceCrud) healthChecker() *baremetal.HealthChecker {
 	healthChecker := &baremetal.HealthChecker{}
 	vs := s.D.Get("health_checker").([]interface{})
 	log.Printf("============================================\n%v\n%v\n%v\n", vs, len(vs))
