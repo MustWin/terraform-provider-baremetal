@@ -71,7 +71,7 @@ resource "baremetal_load_balancer_backendset" "t" {
 			Port:              1234,
 			Protocol:          "stub_protocol",
 			ResponseBodyRegex: "stub_regex",
-			URLPath: "/",
+			URLPath:           "/",
 		},
 		SSLConfig: &baremetal.SSLConfiguration{
 			CertificateName:       "stub_certificate_name",
