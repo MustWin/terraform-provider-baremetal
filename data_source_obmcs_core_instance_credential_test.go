@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type ResourceCoreInstanceCredentialTestSuite struct {
+type DatasourceCoreInstanceCredentialTestSuite struct {
 	suite.Suite
 	Client       mockableClient
 	Config       string
@@ -21,7 +21,7 @@ type ResourceCoreInstanceCredentialTestSuite struct {
 	ResourceName string
 }
 
-func (s *ResourceCoreInstanceCredentialTestSuite) SetupTest() {
+func (s *DatasourceCoreInstanceCredentialTestSuite) SetupTest() {
 	s.Client = GetTestProvider()
 	s.Provider = Provider(func(d *schema.ResourceData) (interface{}, error) {
 		return s.Client, nil
@@ -40,7 +40,7 @@ func (s *ResourceCoreInstanceCredentialTestSuite) SetupTest() {
 
 }
 
-func (s *ResourceCoreInstanceCredentialTestSuite) TestResourceReadCoreInstanceCredential() {
+func (s *DatasourceCoreInstanceCredentialTestSuite) TestDatasourceReadCoreInstanceCredential() {
 
 	resource.UnitTest(s.T(), resource.TestCase{
 		PreventPostDestroyRefresh: true,
@@ -60,6 +60,6 @@ func (s *ResourceCoreInstanceCredentialTestSuite) TestResourceReadCoreInstanceCr
 
 }
 
-func TestResourceCoreInstanceCredentialTestSuite(t *testing.T) {
-	suite.Run(t, new(ResourceCoreInstanceCredentialTestSuite))
+func TestDatasourceCoreInstanceCredentialTestSuite(t *testing.T) {
+	suite.Run(t, new(DatasourceCoreInstanceCredentialTestSuite))
 }
